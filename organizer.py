@@ -1,6 +1,8 @@
 import os
 from abc import ABC, abstractmethod
+import re
 
+from datetime import datetime
 from flask import Flask, request, send_file, render_template
 from PIL import Image
 from werkzeug.utils import secure_filename
@@ -43,19 +45,37 @@ def organize():
 
 class FileTimeStamp(ABC):
     """ Abstract Class to obtain timestamp. """
-    pass
+    @abstractmethod
+    def timestamp(self, file):
+        
+        pass
 
 class JPGTimeStamp(FileTimeStamp):
     """ Class to obtain timestamp for the JPG. """
-    pass
+    @abstractmethod
+    def timestamp(self, file):
+        image = Image.open(file)
+        exif_data = image._getexif()
+
+        time_list = re.split(r'[:,\s]+', exif_data[306])
+
+        date = datetime(int(time_list[0]), int(time_list[1]),int(time_list[2]), int(time_list[3]), int(time_list[4]), int(time_list[5]))
+
+        file_time = date.strftime("%Y_%m_%d_%H_%M_%S")
+
+        file_name = file_time + file
 
 class PNGTimeStamp(FileTimeStamp):
     """ Class to obtain timestamp for the PNG. """
-    pass
+    @abstractmethod
+    def timestamp(self, file):
+        pass
 
 class MP4TimeStamp(FileTimeStamp):
     """ Class to obtain timestamp for the MP4. """
-    pass
+    @abstractmethod
+    def timestamp(self, file):
+        pass
 
 #TODO: Include other filetypes and fill in logic
 
