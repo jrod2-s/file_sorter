@@ -24,21 +24,18 @@ def organize():
     # If it is any other file, get the timestamp given to it by the filesystem
     if 'image' not in request.files:
         return "No file part", 400
+    
     file = request.files['image']
     if file.filename == '':
         return "No selected file", 400
     if file and file.filename.lower().endswith(('.jpg', '.jpeg')):
         filename = secure_filename(file.filename)
-        jpg_path = os.path.join(UPLOAD_FOLDER, filename)
+        date_filename = jpg_time_stamp(filename)
+
+        jpg_path = os.path.join(UPLOAD_FOLDER, date_filename)
         file.save(jpg_path)
 
-        # Convert to PNG
-        img = Image.open(jpg_path)
-        png_filename = filename.rsplit('.', 1)[0] + '.png'
-        png_path = os.path.join(CONVERTED_FOLDER, png_filename)
-        img.save(png_path, 'PNG')
-
-        return send_file(png_path, as_attachment=True)
+        return send_file(jpg_path, as_attachment=True)
 
     return "Invalid file type. Please upload a JPEG.", 400
 
@@ -111,18 +108,35 @@ def filesystem_time_stamp(file):
     file_name = file_time + "_" + file
 
     return file_name
-    
+
+def already_time_stamped(file):
+    """ Function that checks if tile already has timestamp format. """
+    try:
+        file_date = file[0:19]
+        datetime_obj = datetime.strptime(file_date, "%Y_%m_%d_%H_%M_%S")
+
+        return True
+    except:
+
+        return False
+
+def fix_time_stamp(file):
+    """ Function that fixes the time stamp format. """
+    pass
 
 #TODO: Include other filetypes and fill in logic
-# Maybe update functions to only output the date format
+# Maybe update functions to only output the date format and add the file name seperately
+# Think of the issues that file paths will give you onve this is implemented
 
 
 if __name__ == '__main__':
-    # app.run(debug=True)
+    app.run(debug=True)
     print(jpg_time_stamp('bros.jpg'))
 
     print(png_time_stamp("scar.png"))
 
     print(mp4_time_stamp("rocket.mp4"))
+
+    print(already_time_stamped("2023_12_06_22_56_34_bros"))
 
     print(filesystem_time_stamp("scar.png"))
