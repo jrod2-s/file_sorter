@@ -43,42 +43,50 @@ def organize():
 
     return "Invalid file type. Please upload a JPEG.", 400
 
-class FileTimeStamp(ABC):
-    """ Abstract Class to obtain timestamp. """
-    @abstractmethod
-    def timestamp(self, file):
-        
-        pass
+def jpg_time_stamp(file):
+    """ Function to obtain timestamp for the JPG. """
+    image = Image.open(file)
+    exif_data = image._getexif()
 
-class JPGTimeStamp(FileTimeStamp):
-    """ Class to obtain timestamp for the JPG. """
-    @abstractmethod
-    def timestamp(self, file):
-        image = Image.open(file)
-        exif_data = image._getexif()
-
+    try:
         time_list = re.split(r'[:,\s]+', exif_data[306])
 
         date = datetime(int(time_list[0]), int(time_list[1]),int(time_list[2]), int(time_list[3]), int(time_list[4]), int(time_list[5]))
 
         file_time = date.strftime("%Y_%m_%d_%H_%M_%S")
 
-        file_name = file_time + file
+        file_name = file_time + "_" + file
 
-class PNGTimeStamp(FileTimeStamp):
-    """ Class to obtain timestamp for the PNG. """
-    @abstractmethod
-    def timestamp(self, file):
-        pass
+        return file_name
+    
+    except:
+        # Return None if there is no EXIF data
+        return None
 
-class MP4TimeStamp(FileTimeStamp):
+def png_time_stamp(file):
+    """ Function to obtain timestamp for the PNG. """
+
+    image = Image.open(file)
+
+    if 'Creation Time' in image.info:
+        date = image.info['Creation Time']
+    elif "timestamp" in image.info:
+        date = image.info['timestamp']
+    else:
+        return None
+    
+    return date
+
+def mp4_time_stamp(file):
     """ Class to obtain timestamp for the MP4. """
-    @abstractmethod
-    def timestamp(self, file):
-        pass
+
+    pass
 
 #TODO: Include other filetypes and fill in logic
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    # app.run(debug=True)
+    # print(jpg_time_stamp('scar.png'))
+
+    print(png_time_stamp("scar.png"))
