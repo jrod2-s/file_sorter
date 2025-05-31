@@ -99,12 +99,22 @@ def mp4_time_stamp(file):
         else:
             return None
         
+def filesystem_time_stamp(file):
+    """ Function that obtains timestamp from file system. """
+    
+    file_timestamp = os.path.getctime(file)
+    
+    datetime_obj = datetime.fromtimestamp(file_timestamp)
 
+    file_time = datetime_obj.strftime("%Y_%m_%d_%H_%M_%S")
 
+    file_name = file_time + "_" + file
 
+    return file_name
     
 
 #TODO: Include other filetypes and fill in logic
+# Maybe update functions to only output the date format
 
 
 if __name__ == '__main__':
@@ -114,3 +124,5 @@ if __name__ == '__main__':
     print(png_time_stamp("scar.png"))
 
     print(mp4_time_stamp("rocket.mp4"))
+
+    print(filesystem_time_stamp("scar.png"))
