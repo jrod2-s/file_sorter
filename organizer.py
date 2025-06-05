@@ -18,26 +18,63 @@ def index():
 
 @app.route('/organize', methods=['POST'])
 def organize():
-    #TODO: 
-    # Create a function that goes through all the files
-    # If it is a JPEG, PNG, TIFF, RAW, MP4, MOV, etc, obtain internal timestamp
-    # If it is any other file, get the timestamp given to it by the filesystem
     if 'image' not in request.files:
         return "No file part", 400
     
-    file = request.files['image']
-    if file.filename == '':
+    files = request.files.getlist('image')
+
+    # Fix this line to ensure something is inputted
+    if files == []:
         return "No selected file", 400
-    if file and file.filename.lower().endswith(('.jpg', '.jpeg')):
-        filename = secure_filename(file.filename)
-        date_filename = jpg_time_stamp(filename)
+    
+    for file in files:
+    
+        print(file.filename)
+        #TODO: Figure out why only one file was downloaded, and why it had a double time stamp
 
-        jpg_path = os.path.join(UPLOAD_FOLDER, date_filename)
-        file.save(jpg_path)
+        parts = os.path.normpath(file.filename).split(os.sep)
+        safe_parts = [secure_filename(part) for part in parts if part not in ('', '.', '..')]
 
-        return send_file(jpg_path, as_attachment=True)
+        secure_file_path = os.path.join(*safe_parts)
+        secure_file_path = secure_file_path.replace(os.sep, "/")
 
-    return "Invalid file type. Please upload a JPEG.", 400
+        secure_file_name = os.path.basename(secure_file_path)
+
+        if secure_file_path:
+            date_filename = None
+
+            if already_time_stamped(secure_file_path):
+
+                jpg_path = os.path.join(UPLOAD_FOLDER, secure_file_name)
+                jpg_path = jpg_path.replace(os.sep,"/")
+                file.save(jpg_path)
+
+            elif secure_file_path.lower().endswith(('.jpg', '.jpeg')):
+                
+                date_filename = jpg_time_stamp(secure_file_path)
+            
+            elif secure_file_path.lower().endswith(('.png')):
+
+                date_filename = png_time_stamp(secure_file_path)
+
+            elif secure_file_path.lower().endswith(('.mp4')):
+
+                date_filename = mp4_time_stamp(secure_file_path)
+
+            else: 
+                date_filename = filesystem_time_stamp(secure_file_path)
+            
+            print(date_filename)
+            
+            if date_filename is None:
+                date_filename = filesystem_time_stamp(secure_file_path)
+
+            jpg_path = os.path.join(UPLOAD_FOLDER, date_filename)
+            jpg_path = jpg_path.replace(os.sep,"/")
+            file.save(jpg_path)
+
+            print(jpg_path)
+            return send_file(jpg_path, as_attachment=True)
 
 def jpg_time_stamp(file):
     """ Function to obtain timestamp for the JPG. """
@@ -48,7 +85,7 @@ def jpg_time_stamp(file):
         datetime_obj = datetime.strptime(exif_data[306], "%Y:%m:%d %H:%M:%S")
         file_time = datetime_obj.strftime("%Y_%m_%d_%H_%M_%S")
 
-        file_name = file_time + "_" + file
+        file_name = file_time + "_" + os.path.basename(file)
 
         return file_name
     
@@ -73,7 +110,7 @@ def png_time_stamp(file):
     datetime_obj = datetime.strptime(exif_data, "%Y:%m:%d %H:%M:%S")
     file_time = datetime_obj.strftime("%Y_%m_%d_%H_%M_%S")
 
-    file_name = file_time + "_" + file
+    file_name = file_time + "_" + os.path.basename(file)
 
     return file_name
 
@@ -89,7 +126,7 @@ def mp4_time_stamp(file):
             
             file_time = datetime_obj.strftime("%Y_%m_%d_%H_%M_%S")
 
-            file_name = file_time + "_" + file
+            file_name = file_time + "_" + os.path.basename(file)
 
             return file_name
 
@@ -105,7 +142,7 @@ def filesystem_time_stamp(file):
 
     file_time = datetime_obj.strftime("%Y_%m_%d_%H_%M_%S")
 
-    file_name = file_time + "_" + file
+    file_name = file_time + "_" + os.path.basename(file)
 
     return file_name
 
@@ -128,15 +165,19 @@ def fix_time_stamp(file):
 # Maybe update functions to only output the date format and add the file name seperately
 # Think of the issues that file paths will give you onve this is implemented
 
+#TODO: 
+    # Create a function that goes through all the files
+    # If it is a JPEG, PNG, TIFF, RAW, MP4, MOV, etc, obtain internal timestamp
+    # If it is any other file, get the timestamp given to it by the filesystem
 
 if __name__ == '__main__':
     app.run(debug=True)
-    print(jpg_time_stamp('bros.jpg'))
+    # print(jpg_time_stamp('bros.jpg'))
 
-    print(png_time_stamp("scar.png"))
+    # print(png_time_stamp("scar.png"))
 
-    print(mp4_time_stamp("rocket.mp4"))
+    # print(mp4_time_stamp("rocket.mp4"))
 
-    print(already_time_stamped("2023_12_06_22_56_34_bros"))
+    # print(already_time_stamped("2023_12_06_22_56_34_bros"))
 
-    print(filesystem_time_stamp("scar.png"))
+    # print(filesystem_time_stamp("scar.png"))
