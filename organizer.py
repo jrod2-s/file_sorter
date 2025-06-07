@@ -1,4 +1,5 @@
 import os
+from zipfile import ZipFile
 
 from datetime import datetime
 from flask import Flask, request, send_file, render_template
@@ -10,7 +11,6 @@ app = Flask(__name__)
 UPLOAD_FOLDER = 'uploads'
 CONVERTED_FOLDER = 'converted'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-os.makedirs(CONVERTED_FOLDER, exist_ok=True)
 
 @app.route('/')
 def index():
@@ -27,11 +27,12 @@ def organize():
     if files == []:
         return "No selected file", 400
     
+    paths = []
+    
     for file in files:
     
-        print(file.filename)
         #TODO: Figure out why only one file was downloaded, and why it had a double time stamp
-
+        # issue is parsing file path
         parts = os.path.normpath(file.filename).split(os.sep)
         safe_parts = [secure_filename(part) for part in parts if part not in ('', '.', '..')]
 
@@ -43,11 +44,9 @@ def organize():
         if secure_file_path:
             date_filename = None
 
-            if already_time_stamped(secure_file_path):
+            if already_time_stamped(secure_file_name):
 
-                jpg_path = os.path.join(UPLOAD_FOLDER, secure_file_name)
-                jpg_path = jpg_path.replace(os.sep,"/")
-                file.save(jpg_path)
+                date_filename = secure_file_name
 
             elif secure_file_path.lower().endswith(('.jpg', '.jpeg')):
                 
@@ -64,17 +63,19 @@ def organize():
             else: 
                 date_filename = filesystem_time_stamp(secure_file_path)
             
-            print(date_filename)
-            
             if date_filename is None:
                 date_filename = filesystem_time_stamp(secure_file_path)
 
             jpg_path = os.path.join(UPLOAD_FOLDER, date_filename)
             jpg_path = jpg_path.replace(os.sep,"/")
+            paths.append(jpg_path)
             file.save(jpg_path)
 
-            print(jpg_path)
-            return send_file(jpg_path, as_attachment=True)
+    with ZipFile("picture.zip", "w") as zip:
+        for file in paths:
+            zip.write(file)
+
+    return send_file("picture.zip", as_attachment=True)
 
 def jpg_time_stamp(file):
     """ Function to obtain timestamp for the JPG. """
@@ -154,12 +155,13 @@ def already_time_stamped(file):
 
         return True
     except:
-
         return False
 
 def fix_time_stamp(file):
     """ Function that fixes the time stamp format. """
     pass
+
+
 
 #TODO: Include other filetypes and fill in logic
 # Maybe update functions to only output the date format and add the file name seperately
