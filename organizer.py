@@ -2,37 +2,38 @@ import os
 from zipfile import ZipFile
 
 from datetime import datetime
-from flask import Flask, request, send_file, render_template
+from flask import Flask, request, send_file, render_template, abort
 from PIL import Image
 from werkzeug.utils import secure_filename
 from pymediainfo import MediaInfo
 
+#TODO: Create a nice web interface
+
+# Start Flask and Create Uploads Folder
 app = Flask(__name__)
 UPLOAD_FOLDER = 'uploads'
-CONVERTED_FOLDER = 'converted'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
+# Start the front end
 @app.route('/')
 def index():
     return render_template('index.html')
 
+#Start the Backend
 @app.route('/organize', methods=['POST'])
 def organize():
-    if 'image' not in request.files:
-        return "No file part", 400
-    
-    files = request.files.getlist('image')
+    # Obtain list of files from user inputter folder
+    files = request.files.getlist('folder')
 
-    # Fix this line to ensure something is inputted
-    if files == []:
-        return "No selected file", 400
+    # Check if files have been inputted
+    if files[0].filename == "":
+        abort(404)
     
+    # Create list to store paths to convert to zipfile
     paths = []
     
     for file in files:
-    
-        #TODO: Figure out why only one file was downloaded, and why it had a double time stamp
-        # issue is parsing file path
+        # Check the parts of directory to ensure it is safe
         parts = os.path.normpath(file.filename).split(os.sep)
         safe_parts = [secure_filename(part) for part in parts if part not in ('', '.', '..')]
 
@@ -41,41 +42,54 @@ def organize():
 
         secure_file_name = os.path.basename(secure_file_path)
 
-        if secure_file_path:
-            date_filename = None
+        # Set file name output value to none
+        date_filename = None
 
-            if already_time_stamped(secure_file_name):
+        # Check if file already has timestamp
+        if already_time_stamped(secure_file_name):
 
-                date_filename = secure_file_name
+            date_filename = secure_file_name
 
-            elif secure_file_path.lower().endswith(('.jpg', '.jpeg')):
-                
-                date_filename = jpg_time_stamp(secure_file_path)
+        # Timestamp a jpg
+        elif secure_file_path.lower().endswith(('.jpg', '.jpeg')):
             
-            elif secure_file_path.lower().endswith(('.png')):
+            date_filename = jpg_time_stamp(secure_file_path)
+        
+        # Timestamp a png
+        elif secure_file_path.lower().endswith(('.png')):
 
-                date_filename = png_time_stamp(secure_file_path)
+            date_filename = png_time_stamp(secure_file_path)
 
-            elif secure_file_path.lower().endswith(('.mp4')):
+        # Timestamp a mp4
+        elif secure_file_path.lower().endswith(('.mp4')):
 
-                date_filename = mp4_time_stamp(secure_file_path)
+            date_filename = mp4_time_stamp(secure_file_path)
 
-            else: 
-                date_filename = filesystem_time_stamp(secure_file_path)
-            
-            if date_filename is None:
-                date_filename = filesystem_time_stamp(secure_file_path)
+        # Timestamp other files with filesystem time
+        else: 
+            date_filename = filesystem_time_stamp(secure_file_path)
+        
+        # If any of the special files cannot locate a timestamp, use filesystem time
+        if date_filename is None:
+            date_filename = filesystem_time_stamp(secure_file_path)
 
-            jpg_path = os.path.join(UPLOAD_FOLDER, date_filename)
-            jpg_path = jpg_path.replace(os.sep,"/")
-            paths.append(jpg_path)
-            file.save(jpg_path)
+        # save file in uploads folder
+        file_path = os.path.join(UPLOAD_FOLDER, date_filename)
+        file_path = file_path.replace(os.sep,"/")
+        file.save(file_path)
 
-    with ZipFile("picture.zip", "w") as zip:
+        # Add path to list of paths to zip
+        paths.append(file_path)
+
+    #TODO: Find a way to name the outputted zipfile
+    # Maybe use a default name promoting the website
+
+    # Create a zip file
+    with ZipFile("pictures.zip", "w") as zip:
         for file in paths:
             zip.write(file)
 
-    return send_file("picture.zip", as_attachment=True)
+    return send_file("pictures.zip", as_attachment=True)
 
 def jpg_time_stamp(file):
     """ Function to obtain timestamp for the JPG. """
@@ -151,7 +165,7 @@ def already_time_stamped(file):
     """ Function that checks if tile already has timestamp format. """
     try:
         file_date = file[0:19]
-        datetime_obj = datetime.strptime(file_date, "%Y_%m_%d_%H_%M_%S")
+        datetime.strptime(file_date, "%Y_%m_%d_%H_%M_%S")
 
         return True
     except:
@@ -174,12 +188,4 @@ def fix_time_stamp(file):
 
 if __name__ == '__main__':
     app.run(debug=True)
-    # print(jpg_time_stamp('bros.jpg'))
 
-    # print(png_time_stamp("scar.png"))
-
-    # print(mp4_time_stamp("rocket.mp4"))
-
-    # print(already_time_stamped("2023_12_06_22_56_34_bros"))
-
-    # print(filesystem_time_stamp("scar.png"))
