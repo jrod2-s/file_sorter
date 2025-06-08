@@ -8,6 +8,7 @@ from werkzeug.utils import secure_filename
 from pymediainfo import MediaInfo
 
 #TODO: Create a nice web interface
+# Use modern.html, insert file upload capability but modern
 
 # Start Flask and Create Uploads Folder
 app = Flask(__name__)
