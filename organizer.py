@@ -8,7 +8,10 @@ from werkzeug.utils import secure_filename
 from pymediainfo import MediaInfo
 
 #TODO: Create a nice web interface
-# Use modern.html, insert file upload capability but modern
+# Modify the organizer.py script to interface with modern.html
+# Update convert button to be modern
+# Run tests on the backend
+# figure out what other features a website needs
 
 # Start Flask and Create Uploads Folder
 app = Flask(__name__)
@@ -18,7 +21,7 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 # Start the front end
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return render_template('modern.html')
 
 #Start the Backend
 @app.route('/organize', methods=['POST'])
