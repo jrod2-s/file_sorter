@@ -44,6 +44,47 @@
 
     .description p {
       line-height: 1.6;
+
+    }
+
+        .upload-container {
+      background: white;
+      padding: 30px 40px;
+      border-radius: 12px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+      text-align: center;
+    }
+
+    .upload-btn {
+      background-color: #0078d4;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      font-size: 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .upload-btn:hover {
+      background-color: #005ea6;
+    }
+
+    input[type="file"] {
+      display: none;
+    }
+
+    .file-list {
+      margin-top: 20px;
+      text-align: left;
+      max-height: 200px;
+      overflow-y: auto;
+      font-size: 14px;
+    }
+
+    .file-list li {
+      margin-bottom: 5px;
+
     }
   </style>
 </head>
@@ -59,6 +100,35 @@
       <p>Simple way to quickly timestamp a the files in your folder and orgainize them by date.</p>
       <p>Example: Convert 'picture.jpg' to '2025_06_07_00_00_00_picture.jpg'</p>
     </section>
+    <br>
+    <br>
+    <br>
+    
+    <div class="upload-container" style="text-align: center;">
+    <h2>Upload a Folder</h2>
+    
+    <label class="upload-btn" for="folderInput">Choose Folder</label>
+    <input type="file" id="folderInput" style="text-align: center;" webkitdirectory directory multiple>
+
+    <ul class="file-list" id="fileList"></ul>
+   </div>
+
+    <script>
+      const folderInput = document.getElementById('folderInput');
+      const fileList = document.getElementById('fileList');
+
+      folderInput.addEventListener('change', () => {
+        fileList.innerHTML = '';
+        const files = folderInput.files;
+
+        for (const file of files) {
+          const li = document.createElement('li');
+          li.textContent = file.webkitRelativePath || file.name;
+          fileList.appendChild(li);
+        }
+      });
+    </script>
+    
   </main>
 
 </body>
