@@ -1,4 +1,5 @@
 import os
+import shutil
 from zipfile import ZipFile
 
 from datetime import datetime
@@ -8,14 +9,16 @@ from werkzeug.utils import secure_filename
 from pymediainfo import MediaInfo
 
 #TODO: Create a nice web interface
-# Modify the organizer.py script to interface with modern.html
+# Delete contents of upload folder
 # Run tests on the backend
 # figure out what other features a website needs
 
 # Start Flask and Create Uploads Folder
 app = Flask(__name__)
 UPLOAD_FOLDER = 'uploads'
+CONVERTED_FOLDER = 'converts'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+os.makedirs(CONVERTED_FOLDER, exist_ok=True)
 
 # Start the front end
 @app.route('/')
@@ -43,47 +46,47 @@ def organize():
         secure_file_path = os.path.join(*safe_parts)
         secure_file_path = secure_file_path.replace(os.sep, "/")
 
-        secure_file_name = os.path.basename(secure_file_path)
+        # secure_file_name = os.path.basename(secure_file_path)
 
         # Set file name output value to none
         date_filename = None
 
-        # Check if file already has timestamp
-        if already_time_stamped(secure_file_name):
+        # save file in uploads folder
+        file_path = os.path.join(UPLOAD_FOLDER, secure_file_path)
+        file_path = file_path.replace(os.sep,"/")
+        os.makedirs(os.path.dirname(file_path), exist_ok=True)
+        file.save(file_path)
 
-            date_filename = secure_file_name
+        file_name = os.path.basename(file_path)
+
+        # Check if file already has timestamp
+        if already_time_stamped(file_name):
+            date_filename = file_name
 
         # Timestamp a jpg
-        elif secure_file_path.lower().endswith(('.jpg', '.jpeg')):
-            
-            date_filename = jpg_time_stamp(secure_file_path)
+        elif file_name.lower().endswith(('.jpg', '.jpeg')): 
+            date_filename = jpg_time_stamp(file_path)
         
         # Timestamp a png
-        elif secure_file_path.lower().endswith(('.png')):
-
-            date_filename = png_time_stamp(secure_file_path)
+        elif file_name.lower().endswith(('.png')):
+            date_filename = png_time_stamp(file_path)
 
         # Timestamp a mp4
-        elif secure_file_path.lower().endswith(('.mp4')):
-
-            date_filename = mp4_time_stamp(secure_file_path)
+        elif file_name.lower().endswith(('.mp4')):
+            date_filename = mp4_time_stamp(file_path)
 
         # Timestamp other files with filesystem time
         else: 
-            date_filename = filesystem_time_stamp(secure_file_path)
+            date_filename = filesystem_time_stamp(file_path)
         
         # If any of the special files cannot locate a timestamp, use filesystem time
         if date_filename is None:
-            date_filename = filesystem_time_stamp(secure_file_path)
+            date_filename = filesystem_time_stamp(file_path)
 
-        # save file in uploads folder
-        file_path = os.path.join(UPLOAD_FOLDER, date_filename)
-        file_path = file_path.replace(os.sep,"/")
-        file.save(file_path)
 
         # Add path to list of paths to zip
         paths.append(file_path)
-
+    print(paths)
     #TODO: Find a way to name the outputted zipfile
     # Maybe use a default name promoting the website
 
@@ -92,6 +95,9 @@ def organize():
         for file in paths:
             zip.write(file)
 
+    # Delete the uploads folder
+    delete_uploads(UPLOAD_FOLDER)
+
     return send_file("pictures.zip", as_attachment=True)
 
 def jpg_time_stamp(file):
@@ -99,7 +105,11 @@ def jpg_time_stamp(file):
     image = Image.open(file)
     exif_data = image._getexif()
 
-    if 306 in exif_data:
+    if exif_data is None:
+        # No exif data
+        return None
+    
+    elif 306 in exif_data:
         datetime_obj = datetime.strptime(exif_data[306], "%Y:%m:%d %H:%M:%S")
         file_time = datetime_obj.strftime("%Y_%m_%d_%H_%M_%S")
 
@@ -116,7 +126,9 @@ def png_time_stamp(file):
 
     image = Image.open(file)
 
-    if "Creation Time" in image.info:
+    if image.info is None:
+        return None
+    elif "Creation Time" in image.info:
         exif_data = image.info['Creation Time']
     elif "timestamp" in image.info:
         exif_data = image.info['timestamp']
@@ -135,6 +147,9 @@ def png_time_stamp(file):
 def mp4_time_stamp(file):
     """ Class to obtain timestamp for the MP4. """
     media_info = MediaInfo.parse(file)
+
+    if media_info is None:
+        return None
 
     for track in media_info.tracks:
         if track.track_type == "General":
@@ -178,6 +193,10 @@ def fix_time_stamp(file):
     """ Function that fixes the time stamp format. """
     pass
 
+def delete_uploads(folder):
+    """ Funtion that deletes the upload folder. """
+    if os.path.exists(folder):
+        shutil.rmtree(folder)
 
 
 #TODO: Include other filetypes and fill in logic
