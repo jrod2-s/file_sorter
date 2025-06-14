@@ -46,8 +46,6 @@ def organize():
         secure_file_path = os.path.join(*safe_parts)
         secure_file_path = secure_file_path.replace(os.sep, "/")
 
-        # secure_file_name = os.path.basename(secure_file_path)
-
         # Set file name output value to none
         date_filename = None
 
@@ -58,10 +56,12 @@ def organize():
         file.save(file_path)
 
         file_name = os.path.basename(file_path)
+        file_dir = os.path.dirname(file_path)
 
         # Check if file already has timestamp
         if already_time_stamped(file_name):
-            date_filename = file_name
+            paths.append(file_path)
+            continue
 
         # Timestamp a jpg
         elif file_name.lower().endswith(('.jpg', '.jpeg')): 
@@ -83,10 +83,14 @@ def organize():
         if date_filename is None:
             date_filename = filesystem_time_stamp(file_path)
 
+        # change file path name
+        stamped_path = os.path.join(file_dir, date_filename).replace(os.sep, "/")
+
+        stamped_path = unique_filename(stamped_path)
+        os.rename(file_path, stamped_path)
 
         # Add path to list of paths to zip
-        paths.append(file_path)
-    print(paths)
+        paths.append(stamped_path)
     #TODO: Find a way to name the outputted zipfile
     # Maybe use a default name promoting the website
 
@@ -102,69 +106,82 @@ def organize():
 
 def jpg_time_stamp(file):
     """ Function to obtain timestamp for the JPG. """
-    image = Image.open(file)
-    exif_data = image._getexif()
+    try:
+        image = Image.open(file)
+        exif_data = image._getexif()
 
-    if exif_data is None:
-        # No exif data
-        return None
-    
-    elif 306 in exif_data:
-        datetime_obj = datetime.strptime(exif_data[306], "%Y:%m:%d %H:%M:%S")
-        file_time = datetime_obj.strftime("%Y_%m_%d_%H_%M_%S")
-
-        file_name = file_time + "_" + os.path.basename(file)
-
-        return file_name
-    
-    else:
-        # Return None if there is no EXIF data
-        return None
-
-def png_time_stamp(file):
-    """ Function to obtain timestamp for the PNG. """
-
-    image = Image.open(file)
-
-    if image.info is None:
-        return None
-    elif "Creation Time" in image.info:
-        exif_data = image.info['Creation Time']
-    elif "timestamp" in image.info:
-        exif_data = image.info['timestamp']
-    elif "data" in image.info:
-        exif_data = image.info['date']
-    else:
-        return None
-    
-    datetime_obj = datetime.strptime(exif_data, "%Y:%m:%d %H:%M:%S")
-    file_time = datetime_obj.strftime("%Y_%m_%d_%H_%M_%S")
-
-    file_name = file_time + "_" + os.path.basename(file)
-
-    return file_name
-
-def mp4_time_stamp(file):
-    """ Class to obtain timestamp for the MP4. """
-    media_info = MediaInfo.parse(file)
-
-    if media_info is None:
-        return None
-
-    for track in media_info.tracks:
-        if track.track_type == "General":
-            time_metadata = track.encoded_date
-
-            datetime_obj = datetime.strptime(time_metadata, "%Y-%m-%d %H:%M:%S %Z")
-            
+        if exif_data is None:
+            # No exif data
+            return None
+        
+        elif 306 in exif_data:
+            datetime_obj = datetime.strptime(exif_data[306], "%Y:%m:%d %H:%M:%S")
             file_time = datetime_obj.strftime("%Y_%m_%d_%H_%M_%S")
 
             file_name = file_time + "_" + os.path.basename(file)
 
             return file_name
+    
+        else:
+            # Return None if there is no EXIF data
+            return None
+        
+    except Exception as e:
+        print(e)
+        return None
 
+def png_time_stamp(file):
+    """ Function to obtain timestamp for the PNG. """
+    try:
+        image = Image.open(file)
+
+        if image.info is None:
+            return None
+        elif "Creation Time" in image.info:
+            exif_data = image.info['Creation Time']
+        elif "timestamp" in image.info:
+            exif_data = image.info['timestamp']
+        elif "data" in image.info:
+            exif_data = image.info['date']
         else:
             return None
+        
+        datetime_obj = datetime.strptime(exif_data, "%Y:%m:%d %H:%M:%S")
+        file_time = datetime_obj.strftime("%Y_%m_%d_%H_%M_%S")
+
+        file_name = file_time + "_" + os.path.basename(file)
+
+        return file_name
+    except Exception as e:
+        print(e)
+        return None
+
+def mp4_time_stamp(file):
+    """ Class to obtain timestamp for the MP4. """
+    try:
+        media_info = MediaInfo.parse(file)
+
+        if media_info is None:
+            return None
+
+        for track in media_info.tracks:
+            if track.track_type == "General":
+                time_metadata = track.encoded_date
+
+                datetime_obj = datetime.strptime(time_metadata, "%Y-%m-%d %H:%M:%S %Z")
+                
+                file_time = datetime_obj.strftime("%Y_%m_%d_%H_%M_%S")
+
+                file_name = file_time + "_" + os.path.basename(file)
+
+                return file_name
+
+            else:
+                return None
+            
+    except Exception as e:
+        print(e)
+        return None
         
 def filesystem_time_stamp(file):
     """ Function that obtains timestamp from file system. """
@@ -197,6 +214,17 @@ def delete_uploads(folder):
     """ Funtion that deletes the upload folder. """
     if os.path.exists(folder):
         shutil.rmtree(folder)
+
+def unique_filename(file_path):
+    base, ext = os.path.splitext(file_path)
+    counter = 1
+    new_path = file_path    
+
+    while os.path.exists(new_path):
+        new_path = f"{base} ({counter}){ext}"
+        counter +=1
+
+    return new_path
 
 
 #TODO: Include other filetypes and fill in logic
