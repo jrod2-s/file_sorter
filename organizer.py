@@ -9,7 +9,6 @@ from pymediainfo import MediaInfo
 
 #TODO: Create a nice web interface
 # Modify the organizer.py script to interface with modern.html
-# Update convert button to be modern
 # Run tests on the backend
 # figure out what other features a website needs
 

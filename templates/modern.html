@@ -86,6 +86,30 @@
       margin-bottom: 5px;
 
     }
+
+    .modern-button {
+      padding: 12px 24px;
+      background: linear-gradient(135deg, #005ea6, #6366f1);
+      border: none;
+      border-radius: 8px;
+      color: white;
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .modern-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .modern-button:active {
+      transform: translateY(1px);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    }
+
   </style>
 </head>
 <body>
@@ -105,10 +129,17 @@
     <br>
     
     <div class="upload-container" style="text-align: center;">
-    <h2>Upload a Folder</h2>
-    
-    <label class="upload-btn" for="folderInput">Choose Folder</label>
-    <input type="file" id="folderInput" style="text-align: center;" webkitdirectory directory multiple>
+      <h2>Upload a Folder</h2>
+        <br>
+        <br>
+
+        <label class="upload-btn" for="folderInput">Choose Folder</label>
+        <form action="/organize" method="post" enctype="multipart/form-data">
+          <input type="file" name="folder" id="folderInput" style="text-align: center;" webkitdirectory directory multiple>
+          <br>
+          <br>
+          <button class="modern-button" type="submit">Convert</button>
+        </form>
 
     <ul class="file-list" id="fileList"></ul>
    </div>
