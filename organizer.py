@@ -1,7 +1,7 @@
 import os
 import shutil
 from zipfile import ZipFile
-import tempfile
+import glob
 
 from datetime import datetime
 from flask import Flask, request, send_file, render_template, abort
@@ -27,6 +27,9 @@ def index():
 def organize():
     # Make upload folder
     os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+    # clean up random zip files
+    print("deleting zip")
+    delete_zip()
     
     # Obtain zip file from user
     print("started")
@@ -274,6 +277,25 @@ def delete_uploads(folder):
     """ Funtion that deletes the upload folder. """
     if os.path.exists(folder):
         shutil.rmtree(folder)
+
+    return None
+
+def delete_zip(folder="."):
+    """ Function that cleans up the zip files in the current directory. """
+    if os.path.exists(folder):
+        patterns = ["*.zip", "*.7z"]
+
+        for pattern in patterns:
+            print(glob.glob(os.path.join(folder, pattern)))
+            for file_path in glob.glob(os.path.join(folder, pattern)):
+                try:
+                    print(file_path)
+                    os.remove(file_path)
+                except Exception as e:
+                    print(e)
+
+    return None
+
 
 def unique_filename(file_path):
     base, ext = os.path.splitext(file_path)
