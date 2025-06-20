@@ -15,9 +15,6 @@ import py7zr
 # Start Flask and Create Uploads Folder
 app = Flask(__name__)
 UPLOAD_FOLDER = 'uploads'
-CONVERTED_FOLDER = 'converts'
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-os.makedirs(CONVERTED_FOLDER, exist_ok=True)
 
 # Start the front end
 @app.route('/')
@@ -28,6 +25,9 @@ def index():
 #Start the Backend
 @app.route('/organize', methods=['POST'])
 def organize():
+    # Make upload folder
+    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+    
     # Obtain zip file from user
     print("started")
     file = request.files['file']
@@ -125,7 +125,7 @@ def organize():
 
     print("got all paths in list")
     # Zip up the files
-    stamped_file_name = "stamped_files.zip"
+    stamped_file_name = f"stamped_{zipfile}"
 
     with ZipFile(stamped_file_name, "w") as zip:
         for file in paths:
@@ -137,38 +137,6 @@ def organize():
     print("deleted uploads folder")
 
     return send_file(stamped_file_name, as_attachment=True)
-
-
-
-   
-    
-    # for file in files:
-    #     # Check the parts of directory to ensure it is safe
-    #     parts = os.path.normpath(file.filename).split(os.sep)
-    #     safe_parts = [secure_filename(part) for part in parts if part not in ('', '.', '..')]
-
-    #     secure_file_path = os.path.join(*safe_parts)
-    #     secure_file_path = secure_file_path.replace(os.sep, "/")
-
-
-
-    #     # save file in uploads folder
-    #     file_path = os.path.join(UPLOAD_FOLDER, secure_file_path)
-    #     file_path = file_path.replace(os.sep,"/")
-    #     os.makedirs(os.path.dirname(file_path), exist_ok=True)
-    #     file.save(file_path)
-
-    #     file_name = os.path.basename(file_path)
-    #     file_dir = os.path.dirname(file_path)
-
- 
-
-    #     # Add path to list of paths to zip
-    #     paths.append(stamped_path)
-    # #TODO: Find a way to name the outputted zipfile
-    # # Maybe use a default name promoting the website
-
-    # # Create a zip file
 
 
 def is_within_directory(directory, target):
@@ -278,7 +246,7 @@ def mp4_time_stamp(file):
 def filesystem_time_stamp(file):
     """ Function that obtains timestamp from file system. """
     
-    file_timestamp = os.path.getctime(file)
+    file_timestamp = os.path.getmtime(file)
     
     datetime_obj = datetime.fromtimestamp(file_timestamp)
 
