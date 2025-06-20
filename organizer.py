@@ -6,8 +6,8 @@ from werkzeug.utils import secure_filename
 from timestamp import *
 from utilities import *
 
-
-#TODO: Figure out why the we are getting a file not found error 
+#TODO: Update website to explain that 7z zip files are better for maintaining the date
+#TODO: Deploy this and figure out what else is needed along the way
 
 # Start Flask and Create Uploads Folder
 app = Flask(__name__)
@@ -25,14 +25,11 @@ def organize():
     # Make upload folder
     os.makedirs(UPLOAD_FOLDER, exist_ok=True)
     # clean up random zip files
-    print("deleting zip")
     delete_zip()
     
     # Obtain zip file from user
-    print("started")
     file = request.files['file']
     zipfile = secure_filename(file.filename)
-    print("received file")
 
     # Check if file was inputted
     if zipfile == "":
@@ -53,7 +50,6 @@ def organize():
     if zip or seven_z:
         zip_path = os.path.join(UPLOAD_FOLDER, zipfile).replace(os.sep, "/")
         file.save(zip_path)
-        print("saved file")
     else:
         raise Exception("Files extension is missing or not supported.")
 
@@ -67,24 +63,20 @@ def organize():
     elif seven_z:
         secure_extract_7z(zip_path, extracted_path)
 
-    print("extracted file")
-
     # Obtain a list of all the files within the folder
     extracted_subfolder = zipfile[0:parse_val]
 
     subfolder_path = os.path.join(UPLOAD_FOLDER, extracted_folder, extracted_subfolder).replace(os.sep, "/")
-    print(subfolder_path)
 
     files = [f for f in os.listdir(subfolder_path) if os.path.isfile(os.path.join(subfolder_path, f))]
-    print("got file list")
-    # Loop through the list and change the name of the file in that extracted folder
 
+    # Loop through the list and change the name of the file in that extracted folder
     paths = []
 
     for file in files:
         file_name = file
         file_path = os.path.join(subfolder_path, file).replace(os.sep, "/")
-        print(f"made filepath for {file}")
+
         # Set file name output value to none
         date_filename = None
 
@@ -112,39 +104,29 @@ def organize():
         # If any of the special files cannot locate a timestamp, use filesystem time
         if date_filename is None:
             date_filename = filesystem_time_stamp(file_path)
-        print(f"got new name {date_filename}")
+
         # change file path name
         stamped_path = os.path.join(extracted_path, date_filename).replace(os.sep, "/")
         
-        print(f"new stamped path {stamped_path}")
         # Rename the file in extracted subfolder to new name
         stamped_path = unique_filename(stamped_path)
         os.rename(file_path, stamped_path)
 
         paths.append(stamped_path)
 
-    print("got all paths in list")
     # Zip up the files
     stamped_file_name = f"stamped_{zipfile}"
 
     with ZipFile(stamped_file_name, "w") as zip:
         for file in paths:
             zip.write(file)
-    print("created zip")
 
     # Delete the uploads folder
     delete_uploads(UPLOAD_FOLDER)
-    print("deleted uploads folder")
 
     return send_file(stamped_file_name, as_attachment=True)
 
 
-
-
-
-#TODO: Include other filetypes and fill in logic
-# Maybe update functions to only output the date format and add the file name seperately
-# Think of the issues that file paths will give you onve this is implemented
 
 #TODO: 
     # Create a function that goes through all the files
