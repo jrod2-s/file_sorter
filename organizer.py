@@ -1,16 +1,16 @@
 import os
 import shutil
 from zipfile import ZipFile
+import tempfile
 
 from datetime import datetime
 from flask import Flask, request, send_file, render_template, abort
 from PIL import Image
 from werkzeug.utils import secure_filename
 from pymediainfo import MediaInfo
+import py7zr
 
-#TODO: Create a nice web interface
-# Deploy the website
-# figure out what other features a website needs
+#TODO: Figure out why the we are getting a file not found error 
 
 # Start Flask and Create Uploads Folder
 app = Flask(__name__)
@@ -24,40 +24,71 @@ os.makedirs(CONVERTED_FOLDER, exist_ok=True)
 def index():
     return render_template('modern.html')
 
+
 #Start the Backend
 @app.route('/organize', methods=['POST'])
 def organize():
-    # Obtain list of files from user inputter folder
-    files = request.files.getlist('folder')
+    # Obtain zip file from user
+    print("started")
+    file = request.files['file']
+    zipfile = secure_filename(file.filename)
+    print("received file")
 
-    # Check if files have been inputted
-    if files[0].filename == "":
+    # Check if file was inputted
+    if zipfile == "":
+        #TODO: Make simple text response not allowing you to not enter a file
         abort(404)
-    
-    # Create list to store paths to convert to zipfile
+
+    # define booleans to note each file type
+    zip = zipfile.lower().endswith((".zip"))
+    seven_z = zipfile.lower().endswith((".7z"))
+
+    if zip:
+        parse_val = -4
+    elif seven_z:
+        parse_val = -3
+
+
+    # Save off the zip file in the uploads folder
+    if zip or seven_z:
+        zip_path = os.path.join(UPLOAD_FOLDER, zipfile).replace(os.sep, "/")
+        file.save(zip_path)
+        print("saved file")
+    else:
+        raise Exception("Files extension is missing or not supported.")
+
+
+    # Extract the zip file
+    extracted_folder = zipfile[0:parse_val] + "_extracted"
+    extracted_path = os.path.join(UPLOAD_FOLDER, extracted_folder).replace(os.sep, "/")
+
+    if zip:
+        secure_extract(zip_path, extracted_path)
+    elif seven_z:
+        secure_extract_7z(zip_path, extracted_path)
+
+    print("extracted file")
+
+    # Obtain a list of all the files within the folder
+    extracted_subfolder = zipfile[0:parse_val]
+
+    subfolder_path = os.path.join(UPLOAD_FOLDER, extracted_folder, extracted_subfolder).replace(os.sep, "/")
+    print(subfolder_path)
+
+    files = [f for f in os.listdir(subfolder_path) if os.path.isfile(os.path.join(subfolder_path, f))]
+    print("got file list")
+    # Loop through the list and change the name of the file in that extracted folder
+
     paths = []
-    
+
     for file in files:
-        # Check the parts of directory to ensure it is safe
-        parts = os.path.normpath(file.filename).split(os.sep)
-        safe_parts = [secure_filename(part) for part in parts if part not in ('', '.', '..')]
-
-        secure_file_path = os.path.join(*safe_parts)
-        secure_file_path = secure_file_path.replace(os.sep, "/")
-
+        file_name = file
+        file_path = os.path.join(subfolder_path, file).replace(os.sep, "/")
+        print(f"made filepath for {file}")
         # Set file name output value to none
         date_filename = None
 
-        # save file in uploads folder
-        file_path = os.path.join(UPLOAD_FOLDER, secure_file_path)
-        file_path = file_path.replace(os.sep,"/")
-        os.makedirs(os.path.dirname(file_path), exist_ok=True)
-        file.save(file_path)
-
-        file_name = os.path.basename(file_path)
-        file_dir = os.path.dirname(file_path)
-
-        # Check if file already has timestamp
+       # Check if file already has timestamp
         if already_time_stamped(file_name):
             paths.append(file_path)
             continue
@@ -81,27 +112,89 @@ def organize():
         # If any of the special files cannot locate a timestamp, use filesystem time
         if date_filename is None:
             date_filename = filesystem_time_stamp(file_path)
-
+        print(f"got new name {date_filename}")
         # change file path name
-        stamped_path = os.path.join(file_dir, date_filename).replace(os.sep, "/")
-
+        stamped_path = os.path.join(extracted_path, date_filename).replace(os.sep, "/")
+        
+        print(f"new stamped path {stamped_path}")
+        # Rename the file in extracted subfolder to new name
         stamped_path = unique_filename(stamped_path)
         os.rename(file_path, stamped_path)
 
-        # Add path to list of paths to zip
         paths.append(stamped_path)
-    #TODO: Find a way to name the outputted zipfile
-    # Maybe use a default name promoting the website
 
-    # Create a zip file
-    with ZipFile("pictures.zip", "w") as zip:
+    print("got all paths in list")
+    # Zip up the files
+    stamped_file_name = "stamped_files.zip"
+
+    with ZipFile(stamped_file_name, "w") as zip:
         for file in paths:
             zip.write(file)
+    print("created zip")
 
     # Delete the uploads folder
     delete_uploads(UPLOAD_FOLDER)
+    print("deleted uploads folder")
 
-    return send_file("pictures.zip", as_attachment=True)
+    return send_file(stamped_file_name, as_attachment=True)
+
+
+
+   
+    
+    # for file in files:
+    #     # Check the parts of directory to ensure it is safe
+    #     parts = os.path.normpath(file.filename).split(os.sep)
+    #     safe_parts = [secure_filename(part) for part in parts if part not in ('', '.', '..')]
+
+    #     secure_file_path = os.path.join(*safe_parts)
+    #     secure_file_path = secure_file_path.replace(os.sep, "/")
+
+
+
+    #     # save file in uploads folder
+    #     file_path = os.path.join(UPLOAD_FOLDER, secure_file_path)
+    #     file_path = file_path.replace(os.sep,"/")
+    #     os.makedirs(os.path.dirname(file_path), exist_ok=True)
+    #     file.save(file_path)
+
+    #     file_name = os.path.basename(file_path)
+    #     file_dir = os.path.dirname(file_path)
+
+ 
+
+    #     # Add path to list of paths to zip
+    #     paths.append(stamped_path)
+    # #TODO: Find a way to name the outputted zipfile
+    # # Maybe use a default name promoting the website
+
+    # # Create a zip file
+
+
+def is_within_directory(directory, target):
+    """" Check if absolute path for two directories are the same. """
+    abs_directory = os.path.abspath(directory)
+    abs_target = os.path.abspath(target)
+
+    return os.path.commonpath([abs_directory]) == os.path.commonpath([abs_directory, abs_target])
+
+def secure_extract(zip_file, extract_path):
+    """ Function that ensure files in zip are not malicious. """
+    with ZipFile(zip_file) as z:
+        for member in z.namelist():
+            member_path = os.path.join(extract_path, member)
+            if not is_within_directory(extract_path, member_path):
+                raise Exception("Attempted Path Traversal.")
+        z.extractall(extract_path)
+
+def secure_extract_7z(zip_file, extract_path):
+    with py7zr.SevenZipFile(zip_file, mode='r') as z:
+        for member in z.getnames():
+            member_path = os.path.join(extract_path, member)
+            if not is_within_directory(extract_path, member_path):
+                raise Exception("Attempted Path Traversal.")
+        z.extractall(path=extract_path)
+
 
 def jpg_time_stamp(file):
     """ Function to obtain timestamp for the JPG. """
@@ -236,4 +329,4 @@ def unique_filename(file_path):
     # If it is any other file, get the timestamp given to it by the filesystem
 
 if __name__ == '__main__':
-    app.run(debug=False)
+    app.run(debug=True)
