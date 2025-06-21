@@ -6,8 +6,9 @@ from werkzeug.utils import secure_filename
 from timestamp import *
 from utilities import *
 
-#TODO: Update website to explain that 7z zip files are better for maintaining the date
 #TODO: Deploy this and figure out what else is needed along the way
+#TODO: Test website to see if it works with different time zones (make compatible with different timezones)
+
 
 # Start Flask and Create Uploads Folder
 app = Flask(__name__)
@@ -15,8 +16,20 @@ UPLOAD_FOLDER = 'uploads'
 
 # Start the front end
 @app.route('/')
-def index():
-    return render_template('modern.html')
+def home():
+    return render_template('home.html')
+
+@app.route('/privacy')
+def privacy():
+    return render_template('privacy.html')
+
+@app.route('/tips')
+def tips():
+    return render_template("tips.html")
+
+@app.route('/contact')
+def contact():
+    return render_template('contact.html')
 
 
 #Start the Backend

@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FileSorter</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f9f9f9;
+      color: #333;
+    }
+
+    header {
+      background-color: #2c3e50;
+      color: white;
+      padding: 2rem 1rem;
+      text-align: center;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 2.5rem;
+    }
+
+    main {
+      max-width: 800px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+    }
+
+    .description {
+      background: white;
+      padding: 2rem;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    .description h2 {
+      margin-top: 0;
+      color: #2c3e50;
+    }
+
+    .description p {
+      line-height: 1.6;
+
+    }
+
+        .upload-container {
+      background: white;
+      padding: 30px 40px;
+      border-radius: 12px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+      text-align: center;
+    }
+
+    .upload-btn {
+      background-color: #0078d4;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      font-size: 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .upload-btn:hover {
+      background-color: #005ea6;
+    }
+
+    input[type="file"] {
+      display: none;
+    }
+
+    .file-list {
+      margin-top: 20px;
+      text-align: left;
+      max-height: 200px;
+      overflow-y: auto;
+      font-size: 14px;
+    }
+
+    .file-list li {
+      margin-bottom: 5px;
+
+    }
+
+    .modern-button {
+      padding: 12px 24px;
+      background: linear-gradient(135deg, #005ea6, #6366f1);
+      border: none;
+      border-radius: 8px;
+      color: white;
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .modern-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .modern-button:active {
+      transform: translateY(1px);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    }
+
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>File Sorter</h1>
+  </header>
+
+  <main>
+    <section class="description">
+      <h2>About This Page</h2>
+      <p>Simple way to quickly timestamp a the files in your zip folder and orgainizes them by date.</p>
+      <p>Example: Convert 'picture.jpg' to '2025_06_07_00_00_00_picture.jpg'</p>
+    </section>
+    <br>
+    <br>
+    <br>
+    
+    <div class="upload-container" style="text-align: center;">
+      <h2>Upload a ZIP Folder (.7z or .zip)</h2>
+        <br>
+        <br>
+
+        <label class="upload-btn" for="folderInput">Choose Folder</label>
+        <form action="/organize" method="post" enctype="multipart/form-data">
+          <input type="file" name="file" id="folderInput" accept=".zip,.7z" style="text-align: center;" >
+          <br>
+          <br>
+          <button class="modern-button" type="submit">Convert</button>
+        </form>
+
+    <ul class="file-list" id="fileList"></ul>
+   </div>
+
+   <br>
+   <br>
+
+   <div class="upload-container" style="text-align: center;">
+    <h2>How it works</h2>
+    <br>
+    <br>
+    <p>The date and time of creation  will be extracted from JPG, JPEG, PNG and MP4 files. Future development includes expanding to more files types. </p>
+    <p>If the files is not of the types listed above, then the timestamp will be taken from the last time the file was modified in your filesystem.</p>
+    <br>
+    <p><i>Note: It is prefered to upload a .7z zipfile since this format retain file datetime information from your file system.</i></p>
+   </div>
+
+   <br>
+   <br>
+   <footer style="margin-left: 20px">
+    <nav>
+      <a href="/">Home</a>
+      <a href="/privacy">Privacy Policy</a>
+      <a href="/tips">File Compression Tips</a>
+      <a href="/contact">Contact</a>
+      <p> &copy; 2025 FileSorter. All rights reserved.</p>
+    </nav>
+   </footer>
+
+
+    <script>
+      const folderInput = document.getElementById('folderInput');
+      const fileList = document.getElementById('fileList');
+
+      folderInput.addEventListener('change', () => {
+        fileList.innerHTML = '';
+        const files = folderInput.files;
+
+        for (const file of files) {
+          const li = document.createElement('li');
+          li.textContent = file.webkitRelativePath || file.name;
+          fileList.appendChild(li);
+        }
+      });
+    </script>
+    
+  </main>
+
+</body>
+</html>

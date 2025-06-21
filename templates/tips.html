@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Modern Layout</title>
+  <title>File Compression Tips</title>
   <style>
     body {
       margin: 0;
@@ -112,55 +112,45 @@
 
   </style>
 </head>
-<body>
 
-  <header>
+<body> 
+    <header>
     <h1>File Sorter</h1>
-  </header>
-
-  <main>
-    <section class="description">
-      <h2>About This Page</h2>
-      <p>Simple way to quickly timestamp a the files in your folder and orgainize them by date.</p>
-      <p>Example: Convert 'picture.jpg' to '2025_06_07_00_00_00_picture.jpg'</p>
-    </section>
-    <br>
-    <br>
-    <br>
-    
-    <div class="upload-container" style="text-align: center;">
-      <h2>Upload a Folder</h2>
-        <br>
-        <br>
-
-        <label class="upload-btn" for="folderInput">Choose Folder</label>
-        <form action="/organize" method="post" enctype="multipart/form-data">
-          <input type="file" name="file" id="folderInput" accept=".zip,.7z" style="text-align: center;" >
-          <br>
-          <br>
-          <button class="modern-button" type="submit">Convert</button>
-        </form>
-
-    <ul class="file-list" id="fileList"></ul>
-   </div>
-
-    <script>
-      const folderInput = document.getElementById('folderInput');
-      const fileList = document.getElementById('fileList');
-
-      folderInput.addEventListener('change', () => {
-        fileList.innerHTML = '';
-        const files = folderInput.files;
-
-        for (const file of files) {
-          const li = document.createElement('li');
-          li.textContent = file.webkitRelativePath || file.name;
-          fileList.appendChild(li);
-        }
-      });
-    </script>
-    
-  </main>
-
+    </header>
 </body>
-</html>
+
+<div style="margin-left: 20px">
+    <h2>File Compression Tips</h2>
+    <p> Here is a simple guide to compressing your files to upload them to the website.</p>
+    <p><i>Note: I highly recommend that you follow the instruction to compress your folder to .7z format to retain all file system date time information.</i></p>
+
+    <h3>Compress to .7z or .zip on Windows 11</h3>
+
+    <p>1. Open up 'File Explorer' and find the folder with all the files that need to be timestamped. The website will not stamp nested folders so keep all the files in the first level of the folder.</p>
+    <p>2. Right click the folder of that will be converted and look for the option that says 'Compress To' and click on it.</p>
+    <p>3. Click on compression format that you want to use (.7z or .zip)</p>
+    <p><i>Warning: If you choose to upload a zip file instead of a .7z file, all of your timestamps will be made for the current date time if the information is not found within the file. Use .7z compression</i></p>
+
+    <h3>Compress to .7z or .zip on Windows 10</h3>
+    <p> TODO</p>
+
+    <h3>Compress to .7z or .zip on MAC OS</h3>
+    <p> TODO</p>
+
+    <br>
+    <p>For all other Operating Systems, consult the internet for compression.</p>
+
+</div>
+
+<br>
+
+<footer style="margin-left: 20px">
+    <nav>
+      <a href="/">Home</a>
+      <a href="/privacy">Privacy Policy</a>
+      <a href="/tips">File Compression Tips</a>
+      <a href="/contact">Contact</a>
+      <p> &copy; 2025 FileSorter. All rights reserved.</p>
+    </nav>
+</footer>
+
