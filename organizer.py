@@ -8,7 +8,7 @@ from utilities import *
 
 #TODO: Deploy this and figure out what else is needed along the way
 #TODO: Test website to see if it works with different time zones (make compatible with different timezones)
-
+#TODO: Remove personal email and add email message submission
 
 # Start Flask and Create Uploads Folder
 app = Flask(__name__)

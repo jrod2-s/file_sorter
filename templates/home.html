@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>FileSorter</title>
+  <title>FileStamper</title>
   <style>
     body {
       margin: 0;
@@ -115,7 +115,7 @@
 <body>
 
   <header>
-    <h1>File Sorter</h1>
+    <h1>FileStamper</h1>
   </header>
 
   <main>
@@ -132,7 +132,6 @@
       <h2>Upload a ZIP Folder (.7z or .zip)</h2>
         <br>
         <br>
-
         <label class="upload-btn" for="folderInput">Choose Folder</label>
         <form action="/organize" method="post" enctype="multipart/form-data">
           <input type="file" name="file" id="folderInput" accept=".zip,.7z" style="text-align: center;" >
@@ -142,6 +141,8 @@
         </form>
 
     <ul class="file-list" id="fileList"></ul>
+    <br>
+    <a href="/tips">How to get a zipfile: File Compression Tips</a>
    </div>
 
    <br>
@@ -165,7 +166,7 @@
       <a href="/privacy">Privacy Policy</a>
       <a href="/tips">File Compression Tips</a>
       <a href="/contact">Contact</a>
-      <p> &copy; 2025 FileSorter. All rights reserved.</p>
+      <p> &copy; 2025 FileStamper. All rights reserved.</p>
     </nav>
    </footer>
 
