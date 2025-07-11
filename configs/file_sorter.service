@@ -1,0 +1,13 @@
+[Unit]
+Description=Gunicorn instance to serve file sorter Flask app
+After=network.target
+
+[Service]
+User=jrod2
+Group=www-data
+WorkingDirectory=/home/jrod2/file_sorter
+Environment="PATH=/home/jrod2/venv/bin"
+ExecStart=/home/jrod2/venv/bin/gunicorn --workers 3 --bind unix:file_sorter.sock -m 007 wsgi:app
+
+[Install]
+WantedBy=multi-user.target
