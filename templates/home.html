@@ -136,7 +136,7 @@
         <br>
         <label class="upload-btn" for="folderInput">Choose Folder</label>
         <form action="/organize" method="post" enctype="multipart/form-data">
-          <input type="file" name="file" id="folderInput" accept=".zip,.7z" style="text-align: center;" >
+          <input type="file" name="file" id="folderInput" webkitdirectory multiple style="text-align: center;" >
           <br>
           <br>
           <button class="modern-button" type="submit">Convert</button>
@@ -177,6 +177,8 @@
       const folderInput = document.getElementById('folderInput');
       const fileList = document.getElementById('fileList');
 
+      const formData = new FormData();
+
       folderInput.addEventListener('change', () => {
         fileList.innerHTML = '';
         const files = folderInput.files;
@@ -185,6 +187,8 @@
           const li = document.createElement('li');
           li.textContent = file.webkitRelativePath || file.name;
           fileList.appendChild(li);
+          formData.append(`meta_${file.webkitRelativePath}`, file.lastModified);
+          formData.append('files', file, file.webkitRelativePath)
         }
       });
     </script>
