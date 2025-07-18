@@ -135,12 +135,10 @@
         <br>
         <br>
         <label class="upload-btn" for="folderInput">Choose Folder</label>
-        <form action="/organize" method="post" enctype="multipart/form-data">
-          <input type="file" name="file" id="folderInput" webkitdirectory multiple style="text-align: center;" >
-          <br>
-          <br>
-          <button class="modern-button" type="submit">Convert</button>
-        </form>
+        <input type="file" id="folderInput" webkitdirectory multiple style="text-align: center;" >
+        <br>
+        <br>
+        <button class="modern-button" onclick="uploadFiles()">Convert</button>
 
     <ul class="file-list" id="fileList"></ul>
     <br>
@@ -174,25 +172,47 @@
 
 
     <script>
-      const folderInput = document.getElementById('folderInput');
-      const fileList = document.getElementById('fileList');
+    document.getElementById('folderInput').addEventListener('change', function () {
+      const fileListElement = document.getElementById('fileList');
+      const files = this.files;
 
+      fileListElement.innerHTML = "";
+
+      for (const file of files) {
+        const li = document.createElement('li');
+        li.textContent = file.webkitRelativePath;
+        fileListElement.appendChild(li);
+      }
+    });
+
+    function uploadFiles() {
+      const input = document.getElementById('folderInput');
       const formData = new FormData();
 
-      folderInput.addEventListener('change', () => {
-        fileList.innerHTML = '';
-        const files = folderInput.files;
+      for (const file of input.files) {
+        formData.append('files', file)
+        formData.append('metadata', JSON.stringify({
+          name: file.name,
+          relativePath: file.webkitRelativePath,
+          lastModified: file.lastModified
+        }));
+      }
 
-        for (const file of files) {
-          const li = document.createElement('li');
-          li.textContent = file.webkitRelativePath || file.name;
-          fileList.appendChild(li);
-          formData.append(`meta_${file.webkitRelativePath}`, file.lastModified);
-          formData.append('files', file, file.webkitRelativePath)
-        }
-      });
+      fetch('/organize', {
+        method: 'POST',
+        body: formData
+      })
+      // .then(res => res.text())
+      // .then(response => {
+      //   console.log('Upload successful:',response);
+      //   alert('Files uploaded Successfully!');
+      // })
+      // .catch(error => {
+      //   console.error('Upload failed:', error);
+      //   alert('Error uploading files.');
+      // });
+    }
     </script>
-    
   </main>
 
 </body>

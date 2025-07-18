@@ -1,4 +1,6 @@
 import os
+import json
+import zipfile
 
 from flask import Flask, request, send_file, render_template, abort
 from werkzeug.utils import secure_filename
@@ -38,22 +40,24 @@ def contact():
 def organize():
     # Make upload folder
     os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-    # clean up random zip files
-    # delete_zip()
     
-    # Obtain zip file from user
+    # Obtain data from user
     files = request.files.getlist('files')
-    metadata = request.form.getlist('metadata')
-    print("Flask")
-    print(metadata)
+    data = request.form.getlist('metadata')
 
+    paths = []
 
-    for file in files:
-        file_path = file.filename
+    for file, metadata in zip(files, data):
+        dictionary = json.loads(metadata)
+        file_path = dictionary["relativePath"]
+        timestamp = dictionary["lastModified"]
+        print(f"timestamp: {timestamp}")
+
+        print(f"filepath: {file_path}")
+
         file_path = os.path.normpath(file_path)
 
-
-        return "done"
+        print(f"normfilepath: {file_path}")
 
         parts = file_path.split(os.path.sep)
         safe_parts = [secure_filename(part) for part in parts]
@@ -61,14 +65,18 @@ def organize():
         # Recombine into a safe relative path
         safe_path = os.path.join(*safe_parts)
 
+        print(f"safepath: {safe_path}")
+
         full_path = os.path.join(UPLOAD_FOLDER, safe_path)
         file_name = os.path.basename(full_path)
+
+        print(f"full_path: {full_path}")
+        print(f"file_name: {file_name}")
 
         os.makedirs(os.path.dirname(full_path), exist_ok=True)
 
         file.save(full_path)
-
-        paths = []
+        print("Saved")
 
         # Set file name output value to none
         date_filename = None
@@ -77,19 +85,15 @@ def organize():
         if already_time_stamped(file_name):
             paths.append(full_path)
             continue
-
         # Timestamp a jpg
         elif file_name.lower().endswith(('.jpg', '.jpeg')): 
             date_filename = jpg_time_stamp(full_path)
-        
         # Timestamp a png
         elif file_name.lower().endswith(('.png')):
             date_filename = png_time_stamp(full_path)
-
         # Timestamp a mp4
         elif file_name.lower().endswith(('.mp4')):
             date_filename = mp4_time_stamp(full_path)
-
         # Timestamp other files with filesystem time
         else: 
             date_filename = from_timestamp(full_path, timestamp)
@@ -98,11 +102,12 @@ def organize():
         if date_filename is None:
             date_filename = from_timestamp(full_path, timestamp)
 
-        path = os.path.dirname(full_path)
+        rel_path = os.path.dirname(full_path)
+        print(f"relpath: {rel_path}")
 
         # change file path name
-        stamped_path = os.path.join(path, date_filename).replace(os.sep, "/")
-        print(stamped_path)
+        stamped_path = os.path.join(rel_path, date_filename).replace(os.sep, "/")
+        print(f"Stampedpath: {stamped_path}")
         
         # Rename the file in extracted subfolder to new name
         stamped_path = unique_filename(stamped_path)
@@ -110,17 +115,10 @@ def organize():
 
         paths.append(stamped_path)
 
-    # # Zip up the files
-    # stamped_file_name = f"stamped_{zipfile}"
+    # convert uploaded folder to zip
+    zip_folder(rel_path, UPLOAD_FOLDER)
 
-    # with ZipFile(stamped_file_name, "w") as zip:
-    #     for file in paths:
-    #         zip.write(file)
-
-    # # Delete the uploads folder
-    # delete_uploads(UPLOAD_FOLDER)
-
-    return send_file(stamped_file_name, as_attachment=True)
+    return send_file(rel, as_attachment=True)
 
 
 
