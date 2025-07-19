@@ -1,6 +1,6 @@
 import os
 import json
-import zipfile
+from zipfile import ZipFile
 
 from flask import Flask, request, send_file, render_template, abort
 from werkzeug.utils import secure_filename
@@ -40,6 +40,7 @@ def contact():
 def organize():
     # Make upload folder
     os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+    delete_zip()
     
     # Obtain data from user
     files = request.files.getlist('files')
@@ -114,11 +115,23 @@ def organize():
         os.rename(full_path, stamped_path)
 
         paths.append(stamped_path)
+        print(f"relpath: {rel_path}")
 
+    zip_path = rel_path.split(os.path.sep)[-1] + ".zip"
+    print(f"zippath: {zip_path}")
     # convert uploaded folder to zip
-    zip_folder(rel_path, UPLOAD_FOLDER)
+    # zip_folder(rel_path, zip_path)
+    with ZipFile(zip_path, "w") as zipf:
+        for file in paths:
+            zipf.write(file)
 
-    return send_file(rel, as_attachment=True)
+    delete_uploads(UPLOAD_FOLDER)
+
+    if os.path.exists(zip_path):
+        return send_file(os.path.abspath(zip_path), as_attachment=True)
+    
+    else:
+        return "File not found", 404
 
 
 

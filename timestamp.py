@@ -118,7 +118,7 @@ def from_timestamp(file, timestamp):
 
     file_time = datetime.fromtimestamp(int(timestamp)/1000).strftime("%Y_%m_%d_%H_%M_%S")
 
-    file_name = + file_time + "_" + filename 
+    file_name = file_time + "_" + filename 
 
     return file_name
 
