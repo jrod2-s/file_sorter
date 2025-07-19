@@ -120,15 +120,13 @@ def organize():
     zip_path = rel_path.split(os.path.sep)[-1] + ".zip"
     print(f"zippath: {zip_path}")
     # convert uploaded folder to zip
-    # zip_folder(rel_path, zip_path)
-    with ZipFile(zip_path, "w") as zipf:
-        for file in paths:
-            zipf.write(file)
+    zip_folder(rel_path, zip_path)
+
 
     delete_uploads(UPLOAD_FOLDER)
 
     if os.path.exists(zip_path):
-        return send_file(os.path.abspath(zip_path), as_attachment=True)
+        return send_file(os.path.abspath(zip_path), as_attachment=True, mimetype='text/html')
     
     else:
         return "File not found", 404

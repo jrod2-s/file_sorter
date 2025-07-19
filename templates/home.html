@@ -202,16 +202,22 @@
         method: 'POST',
         body: formData
       })
-      // .then(res => res.text())
-      // .then(response => {
-      //   console.log('Upload successful:',response);
-      //   alert('Files uploaded Successfully!');
-      // })
-      // .catch(error => {
-      //   console.error('Upload failed:', error);
-      //   alert('Error uploading files.');
-      // });
-    }
+      .then(res => res.blob())
+      .then(blob => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = "organized_files.zip";  // or whatever filename you want
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+      })
+      .catch(error => {
+        console.error('Upload failed:', error);
+        alert('Error uploading files.');
+      });
+      }
     </script>
   </main>
 
