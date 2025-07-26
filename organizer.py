@@ -8,7 +8,6 @@ from werkzeug.utils import secure_filename
 from timestamp import *
 from utilities import *
 
-#TODO: fix bug where html hardcoded file name is used
 #TODO: Test website to see if it works with different time zones (make compatible with different timezones)
 #TODO: Remove personal email and add email message submission
 
@@ -37,7 +36,7 @@ def contact():
 #Start the Backend
 @app.route('/organize', methods=['POST'])
 def organize():
-    # Make upload folder
+    # Make upload folder and delete zip file made previously
     os.makedirs(UPLOAD_FOLDER, exist_ok=True)
     delete_zip()
     
@@ -47,20 +46,14 @@ def organize():
 
     paths = []
 
-    print(files)
-
+    # Loop through files and timestamp meta data
     for file, metadata in zip(files, data):
         dictionary = json.loads(metadata)
-        # print(dictionary)
         file_path = dictionary["relativePath"]
         timestamp = dictionary["lastModified"]
-        print(f"timestamp: {timestamp}")
 
-        print(f"filepath: {file_path}")
-
+        # Make the inputted path a safe file path
         file_path = os.path.normpath(file_path)
-
-        print(f"normfilepath: {file_path}")
 
         parts = file_path.split(os.path.sep)
         safe_parts = [secure_filename(part) for part in parts]
@@ -68,18 +61,15 @@ def organize():
         # Recombine into a safe relative path
         safe_path = os.path.join(*safe_parts)
 
-        print(f"safepath: {safe_path}")
-
+        # Define new path under upload folder
         full_path = os.path.join(UPLOAD_FOLDER, safe_path)
         file_name = os.path.basename(full_path)
 
-        print(f"full_path: {full_path}")
-        print(f"file_name: {file_name}")
-
+        # Create new file path directory
         os.makedirs(os.path.dirname(full_path), exist_ok=True)
 
+        # Save uploaded files
         file.save(full_path)
-        print("Saved")
 
         # Set file name output value to none
         date_filename = None
@@ -106,21 +96,18 @@ def organize():
             date_filename = from_timestamp(full_path, timestamp)
 
         rel_path = os.path.dirname(full_path)
-        print(f"relpath: {rel_path}")
 
         # change file path name
         stamped_path = os.path.join(rel_path, date_filename).replace(os.sep, "/")
-        print(f"Stampedpath: {stamped_path}")
         
         # Rename the file in extracted subfolder to new name
         stamped_path = unique_filename(stamped_path)
         os.rename(full_path, stamped_path)
 
         paths.append(stamped_path)
-        print(f"relpath: {rel_path}")
 
     zip_path = rel_path.split(os.path.sep)[-1] + ".zip"
-    print(f"zippath: {zip_path}")
+
     # convert uploaded folder to zip
     zip_folder(rel_path, zip_path)
 
@@ -132,13 +119,6 @@ def organize():
     
     else:
         return "File not found", 404
-
-
-
-#TODO: 
-    # Create a function that goes through all the files
-    # If it is a JPEG, PNG, TIFF, RAW, MP4, MOV, etc, obtain internal timestamp
-    # If it is any other file, get the timestamp given to it by the filesystem
 
 if __name__ == '__main__':
     app.run(debug=True)
