@@ -6,7 +6,7 @@ Function to handle file utilites for the main script.
 
 import os
 import shutil
-from zipfile import ZipFile
+from zipfile import ZipFile, ZIP_DEFLATED
 import glob
 import py7zr
 
@@ -67,3 +67,11 @@ def unique_filename(file_path):
         counter +=1
 
     return new_path
+
+def zip_folder(folder_path, output_zip_path):
+    with ZipFile(output_zip_path, 'w') as zipf:
+        for root, dirs, files in os.walk(folder_path):
+            for file in files:
+                abs_file_path = os.path.join(root, file)
+                rel_path = os.path.relpath(abs_file_path, folder_path)
+                zipf.write(abs_file_path, rel_path)

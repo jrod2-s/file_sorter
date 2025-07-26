@@ -111,6 +111,16 @@ def already_time_stamped(file):
         return True
     except:
         return False
+    
+def from_timestamp(file, timestamp):
+    """Given a timestamp, add it to the name. """
+    filename = os.path.basename(file)
+
+    file_time = datetime.fromtimestamp(int(timestamp)/1000).strftime("%Y_%m_%d_%H_%M_%S")
+
+    file_name = file_time + "_" + filename 
+
+    return file_name
 
 def fix_time_stamp(file):
     """ Function that fixes the time stamp format. """

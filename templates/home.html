@@ -123,72 +123,109 @@
   <main>
     <section class="description">
       <h2>About This Page</h2>
-      <p>Simple way to quickly timestamp the files in your zip folder and orgainizes them by date.</p>
+      <p>Simple way to quickly timestamp the files in yourfolder and orgainizes them by date.</p>
       <p>Example: Convert 'picture.jpg' to '2025_06_07_00_00_00_picture.jpg'</p>
     </section>
-    <br>
-    <br>
-    <br>
+    
+    <br><br><br>
     
     <div class="upload-container" style="text-align: center;">
-      <h2>Upload a ZIP Folder (.7z or .zip)</h2>
-        <br>
+      <h2>Upload a Folder</h2>
         <br>
         <label class="upload-btn" for="folderInput">Choose Folder</label>
-        <form action="/organize" method="post" enctype="multipart/form-data">
-          <input type="file" name="file" id="folderInput" accept=".zip,.7z" style="text-align: center;" >
-          <br>
-          <br>
-          <button class="modern-button" type="submit">Convert</button>
-        </form>
+        <br>
+        <input type="file" id="folderInput" webkitdirectory multiple style="text-align: center;" >
+        <br><br>
+        <button class="modern-button" onclick="uploadFiles()">Convert</button>
 
     <ul class="file-list" id="fileList"></ul>
-    <br>
-    <a href="/tips">How to get a zipfile: File Compression Tips</a>
+    <!-- <br>
+    <a href="/tips">How to get a zipfile: File Compression Tips</a> -->
    </div>
 
-   <br>
-   <br>
+   <br><br>
 
    <div class="upload-container" style="text-align: center;">
     <h2>How it works</h2>
     <br>
-    <br>
-    <p>The date and time of creation  will be extracted from JPG, JPEG, PNG and MP4 files. Future development includes expanding to more files types. </p>
+    <p>The date and time of creation  will be extracted from JPG, JPEG, PNG and MP4 files. </p>
     <p>If the files is not of the types listed above, then the timestamp will be taken from the last time the file was modified in your filesystem.</p>
     <br>
-    <p><i>Note: It is prefered to upload a .7z zipfile since this format retain file datetime information from your file system.</i></p>
    </div>
 
-   <br>
-   <br>
-   <footer style="margin-left: 20px">
+   <br><br>
+
+   <div class="upload-container" style="text-align: center;">
+    <h2>Why this format?</h2>
+    <br>
+    <p>The best format for a timestamp on your file is "year_month_day_hour_minutes_second". </p>
+    <p>This format places all your files in order from oldest to latest.</p>
+    <br>
+   </div>
+
+   <br><br>
+
+  <footer style="margin-left: 20px">
     <nav>
-      <a href="/">Home</a>
-      <a href="/privacy">Privacy Policy</a>
-      <a href="/tips">File Compression Tips</a>
+      <a href="/">Home</a><a> |</a>
+      <a href="/privacy">Privacy Policy</a><a> |</a>
       <a href="/contact">Contact</a>
       <p> &copy; 2025 FileStamper. All rights reserved.</p>
     </nav>
-   </footer>
+</footer>
 
 
     <script>
-      const folderInput = document.getElementById('folderInput');
-      const fileList = document.getElementById('fileList');
+    document.getElementById('folderInput').addEventListener('change', function () {
+      const fileListElement = document.getElementById('fileList');
+      const files = this.files;
 
-      folderInput.addEventListener('change', () => {
-        fileList.innerHTML = '';
-        const files = folderInput.files;
+      fileListElement.innerHTML = "";
 
-        for (const file of files) {
-          const li = document.createElement('li');
-          li.textContent = file.webkitRelativePath || file.name;
-          fileList.appendChild(li);
-        }
+      for (const file of files) {
+        const li = document.createElement('li');
+        li.textContent = file.webkitRelativePath;
+        fileListElement.appendChild(li);
+      }
+    });
+
+    function uploadFiles() {
+      const input = document.getElementById('folderInput');
+      const formData = new FormData();
+
+      for (const file of input.files) {
+        formData.append('files', file)
+        formData.append('metadata', JSON.stringify({
+          name: file.name,
+          relativePath: file.webkitRelativePath,
+          lastModified: file.lastModified
+        }));
+      }
+
+      const firstPath = input.files[0].webkitRelativePath;
+      const folderName = firstPath.split('/')[0];
+
+      fetch('/organize', {
+        method: 'POST',
+        body: formData
+      })
+      .then(res => res.blob())
+      .then(blob => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${folderName}.zip`;  // or whatever filename you want
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+      })
+      .catch(error => {
+        console.error('Upload failed:', error);
+        alert('Error uploading files.');
       });
+      }
     </script>
-    
   </main>
 
 </body>
