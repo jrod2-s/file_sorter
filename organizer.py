@@ -32,7 +32,6 @@ def tips():
 def contact():
     return render_template('contact.html')
 
-
 #Start the Backend
 @app.route('/organize', methods=['POST'])
 def organize():
