@@ -8,8 +8,7 @@ from werkzeug.utils import secure_filename
 from timestamp import *
 from utilities import *
 
-#TODO: Figure out why time stamp is not being saved when uploading ...
-# The array return nothing, reference test code
+#TODO: fix bug where html hardcoded file name is used
 #TODO: Test website to see if it works with different time zones (make compatible with different timezones)
 #TODO: Remove personal email and add email message submission
 
@@ -48,8 +47,11 @@ def organize():
 
     paths = []
 
+    print(files)
+
     for file, metadata in zip(files, data):
         dictionary = json.loads(metadata)
+        # print(dictionary)
         file_path = dictionary["relativePath"]
         timestamp = dictionary["lastModified"]
         print(f"timestamp: {timestamp}")
@@ -126,7 +128,7 @@ def organize():
     delete_uploads(UPLOAD_FOLDER)
 
     if os.path.exists(zip_path):
-        return send_file(os.path.abspath(zip_path), as_attachment=True, mimetype='text/html')
+        return send_file(os.path.abspath(zip_path), as_attachment=True)
     
     else:
         return "File not found", 404

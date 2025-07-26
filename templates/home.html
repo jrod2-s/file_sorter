@@ -198,6 +198,9 @@
         }));
       }
 
+      const firstPath = input.files[0].webkitRelativePath;
+      const folderName = firstPath.split('/')[0];
+
       fetch('/organize', {
         method: 'POST',
         body: formData
@@ -207,7 +210,7 @@
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = "organized_files.zip";  // or whatever filename you want
+        a.download = `${folderName}.zip`;  // or whatever filename you want
         document.body.appendChild(a);
         a.click();
         a.remove();
