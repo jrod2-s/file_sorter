@@ -9,6 +9,7 @@ from timestamp import *
 from utilities import *
 
 #TODO: Test website to see if it works with different time zones (make compatible with different timezones)
+#TODO: Include google drive, drop box and link submission
 #TODO: Remove personal email and add email message submission
 
 # Start Flask and Create Uploads Folder
