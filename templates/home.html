@@ -37,6 +37,7 @@
         <input type="file" id="folderInput" webkitdirectory multiple style="text-align: center;" >
         <br><br>
         <button class="modern-button" onclick="uploadFiles()">Convert</button>
+        <p><i>Folder size limit: 200 Mbytes.</i></p>
 
     <ul class="file-list" id="fileList"></ul>
     <!-- <br>
@@ -89,17 +90,36 @@
       }
     });
 
+    const MAX_FILE_SIZE_MB = 20; // limit individual files to 5 MB
+    const MAX_TOTAL_SIZE_MB = 200; // optional: limit total size
+    const maxFileSizeBytes = MAX_FILE_SIZE_MB * 1024 * 1024;
+    const maxTotalSizeBytes = MAX_TOTAL_SIZE_MB * 1024 * 1024;
+
     function uploadFiles() {
       const input = document.getElementById('folderInput');
       const formData = new FormData();
 
+      let totalSize = 0;
+
       for (const file of input.files) {
+        totalSize += file.size;
+
+        if (file.size > maxFileSizeBytes) {
+          alert(`❌ ${file.name} is too large. Max file size is ${MAX_FILE_SIZE_MB} MB.`);
+          return;
+        }
+
         formData.append('files', file)
         formData.append('metadata', JSON.stringify({
           name: file.name,
           relativePath: file.webkitRelativePath,
           lastModified: file.lastModified
         }));
+      }
+
+      if (totalSize > maxTotalSizeBytes){
+        alert(`❌ Total upload size exceeds ${MAX_TOTAL_SIZE_MB} MB.`);
+        return;
       }
 
       const firstPath = input.files[0].webkitRelativePath;
