@@ -47,10 +47,8 @@ def delete_zip(folder="."):
         patterns = ["*.zip", "*.7z"]
 
         for pattern in patterns:
-            print(glob.glob(os.path.join(folder, pattern)))
             for file_path in glob.glob(os.path.join(folder, pattern)):
                 try:
-                    print(file_path)
                     os.remove(file_path)
                 except Exception as e:
                     print(e)

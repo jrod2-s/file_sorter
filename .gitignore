@@ -4,5 +4,7 @@
 *.mp4
 *.zip
 *.7z
+*.log
 /uploads
 __pycache__/
+/data
