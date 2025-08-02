@@ -17,10 +17,6 @@ from utilities import *
 app = Flask(__name__)
 UPLOAD_FOLDER = 'uploads'
 
-# Start logger
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s', filename='filesorter.log')
-logger = logging.getLogger(__name__)
-
 # Start the front end
 @app.route('/')
 def home():
@@ -47,6 +43,11 @@ def sitemap():
 @app.route('/organize', methods=['POST'])
 def organize():
     try:
+        # Start logger
+        logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s', filename='filesorter.log')
+        logger = logging.getLogger(__name__)
+        logger.info("Logger started!")
+
         # Make upload folder and delete zip file made previously
         os.makedirs(UPLOAD_FOLDER, exist_ok=True)
         delete_zip()
