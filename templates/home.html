@@ -103,7 +103,11 @@
       }
 
       const firstPath = input.files[0].webkitRelativePath;
-      const folderName = firstPath.split('/')[0];
+      let folderName = 'download';
+      if (firstPath && firstPath.includes('/')) {
+        folderName = firstPath.split('/')[0];
+      }
+
 
       fetch('/organize', {
         method: 'POST',
