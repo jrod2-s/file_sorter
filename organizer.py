@@ -2,7 +2,7 @@ import os
 import json
 from zipfile import ZipFile
 
-from flask import Flask, request, send_file, render_template, abort
+from flask import Flask, request, send_file, render_template, abort, Response
 from werkzeug.utils import secure_filename
 
 from timestamp import *
@@ -32,6 +32,11 @@ def tips():
 @app.route('/contact')
 def contact():
     return render_template('contact.html')
+
+@app.route('/sitemap.xml')
+def sitemap():
+    xml =  render_template('sitemap.xml')
+    return Response(xml, mimetype='application/xml')
 
 #Start the Backend
 @app.route('/organize', methods=['POST'])
