@@ -123,3 +123,11 @@
       outline: none;
       cursor: pointer;
     }
+
+    .center-img {
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
+      width: 70%; /* adjust as needed */
+    }
+
