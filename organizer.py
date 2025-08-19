@@ -39,6 +39,14 @@ def sitemap():
     xml =  render_template('sitemap.xml')
     return Response(xml, mimetype='application/xml')
 
+@app.route("/robots.txt")
+def robots_txt():
+    return (
+        "User-agent: *\nDisallow: /run-script\n",
+        200,
+        {"Content-Type": "text/plain"},
+    )
+
 #Start the Backend
 @app.route('/organize', methods=['POST'])
 def organize():
